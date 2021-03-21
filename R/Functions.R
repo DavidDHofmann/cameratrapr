@@ -273,25 +273,20 @@ cam_move <- function(project = NULL, overwrite = F, date_format = NULL, tz = "UT
 #' Function to convert a video into frames
 #' @export
 #' @param filepath filepath(s) to the video file(s) that need to be converted
-#' @param outdir directory to the folder where the converted file(s) should be
-#' stored. By default, this is the working directory.
+#' @param outdir character vector, either of length 1 or same length as
+#' \code{file} directory or directories to the folder(s) where the converted
+#' file(s) should be stored. By default, this is set to the directory of the
+#' input file(s).
 #' @param fps numeric frames per second that should be stored
-#' @param logical overwrite should frames that already exist in the output directory be overwritten?
+#' @param overwrite logical should frames that already exist in the output
+#' directory be overwritten?
 #' @examples
 #' Coming
 video2pic <- function(file = NULL, outdir = NULL, fps = NULL, overwrite = F){
 
-
   # If no file is provided, stop
   if (is.null(file)){
     stop("Please provide at least one file")
-  }
-
-  # If the file does not contain the full path, add it
-  for (i in 1:length(file)){
-    if (dirname(file[i]) == "."){
-      file[i] <- file.path(getwd(), file[i])
-    }
   }
 
   # Check if all files exist
@@ -300,9 +295,29 @@ video2pic <- function(file = NULL, outdir = NULL, fps = NULL, overwrite = F){
     stop("Some of the specified files do not exist")
   }
 
-  # If no output directory is provided, set it to the working directory
+  # If no output directory is provided, set it to the directory of the input
+  # file
   if (is.null(outdir)){
-    outdir <- getwd()
+    outdir <- dirname(file)
+  } else {
+    if (!all(dir.exists(outdir))){
+      stop("specificied output directory does not exist")
+    }
+  }
+
+  # Make sure a correct number of directories is provided
+  if (length(outdir) != length(file) & length(outdir) != 1){
+    stop("outdir has to be of length 1 or same length as file")
+  }
+
+  # If a signle output directory is provided, repead it for all files
+  if (length(outdir) == 1){
+    outdir <- rep(outdir, length(file))
+  }
+
+  # If no fps is desired, stop
+  if (is.null(fps)){
+    stop("Please provide a valid fps")
   }
 
   # Source the python script
@@ -325,7 +340,7 @@ video2pic <- function(file = NULL, outdir = NULL, fps = NULL, overwrite = F){
     # Check if output files alraedy exist
     base <- strsplit(basename(file[i]), split="\\.")[[1]][-2]
     base <- paste0(base, "_Frame_0.JPG")
-    outname <- file.path(outdir, base)
+    outname <- file.path(outdir[i], base)
 
     # If output already exists, skip
     if (file.exists(outname) & !overwrite){
@@ -337,7 +352,7 @@ video2pic <- function(file = NULL, outdir = NULL, fps = NULL, overwrite = F){
     } else {
 
       # Run the function
-      video2pic_py(file[i], outdir, fps)
+      video2pic_py(file[i], outdir[i], fps)
 
     }
     # Print progress bar update

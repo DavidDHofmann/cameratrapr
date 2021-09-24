@@ -1,11 +1,12 @@
 # ################################################################################
 # #### TESTING
 # ################################################################################
+# library(cameratrapr)
+# setwd("/home/david/Schreibtisch")
 # cameras1 <- paste0("R", sprintf("%02d", 1:30))
 # cameras2 <- paste0("S", sprintf("%02d", 1:30))
 # cameras <- c(cameras1, cameras2)
 # locations <- paste0("L", sprintf("%03d", 1:6))
-# setwd("/home/david/Schreibtisch")
 # name <- "Garden"
 # library(exifr)
 # # dir <- "/home/david/Schreibtisch"
@@ -81,8 +82,8 @@ cam_project <- function(name = NULL, dir = NULL, cameras = NULL, locations = NUL
   }
 
   # Create csv files that are required to collect data
-  deployments <- .deploymentsCSV(file.path(dir, name))
-  cameras     <- .camerasCSV(file.path(dir, name))
+  deployments <- .deploymentsCSV(file.path(dir, name), locations = locations)
+  cameras     <- .camerasCSV(file.path(dir, name), cameras = cameras)
 
   # Print success message
   cat("Project successfully created in", main_folder)
@@ -378,42 +379,67 @@ video2pic <- function(file = NULL, outdir = NULL, fps = NULL, overwrite = F){
 #### Level 2 Functions
 ################################################################################
 # Helper function to create the deployments csv file
-.deploymentsCSV <- function(dir = NULL){
+.deploymentsCSV <- function(dir = NULL, locations = NULL){
 
   # Prepare an empty dataframe
-  deployments <- data.frame(
-      LocationID      = NA
-    , CameraID        = NA
-    , CardID          = NA
-    , StartDate       = NA
-    , EndDate         = NA
-    , Height          = NA
-    , HorizontalAngle = NA
-    , VerticalAngle   = NA
-    , MountingMethod  = NA
-    , Notes           = NA
-  )
+  if (!is.null(locations)) {
+    deployments <- data.frame(
+        LocationID = locations
+      , CameraID        = NA
+      , CardID          = NA
+      , StartDate       = NA
+      , EndDate         = NA
+      , Height          = NA
+      , HorizontalAngle = NA
+      , VerticalAngle   = NA
+      , MountingMethod  = NA
+      , Notes           = NA
+    )
+  } else {
+    deployments <- na.omit(data.frame(
+        LocationID      = NA
+      , CameraID        = NA
+      , CardID          = NA
+      , StartDate       = NA
+      , EndDate         = NA
+      , Height          = NA
+      , HorizontalAngle = NA
+      , VerticalAngle   = NA
+      , MountingMethod  = NA
+      , Notes           = NA
+    ))
+  }
 
   # Write it to file
   filename <- file.path(dir, "Deployments.csv")
-  write.csv(na.omit(deployments), file = filename, row.names = F)
+  write.csv(deployments, file = filename, row.names = F)
 }
 
 # Helper function to create the cameras csv file
-.camerasCSV <- function(dir = NULL){
+.camerasCSV <- function(dir = NULL, cameras = NULL){
 
   # Prepare an empty dataframe
-  cameras <- data.frame(
-      CameraID     = NA
-    , ModelType    = NA
-    , ModelNo      = NA
-    , DateAcquired = NA
-    , Notes        = NA
-  )
+  if (!is.null(cameras)) {
+    cameras <- data.frame(
+        CameraID     = cameras
+      , ModelType    = NA
+      , ModelNo      = NA
+      , DateAcquired = NA
+      , Notes        = NA
+    )
+  } else {
+    cameras <- na.omit(data.frame(
+        CameraID     = NA
+      , ModelType    = NA
+      , ModelNo      = NA
+      , DateAcquired = NA
+      , Notes        = NA
+    ))
+  }
 
   # Write it to file
   filename <- file.path(dir, "Cameras.csv")
-  write.csv(na.omit(cameras), file = filename, row.names = F)
+  write.csv(cameras, file = filename, row.names = F)
 }
 
 # Helper function to determine the file extension
